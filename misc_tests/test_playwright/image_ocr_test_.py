@@ -10,7 +10,7 @@ load_dotenv()
 
 
 base64_image = ''
-path = os.path.join(os.path.dirname(__file__), 'az_portal_main.png')
+path = os.path.join(os.path.dirname(__file__), 'resource_group_page.png')
 with open(path, "rb") as image_file:
     base64_image = base64.b64encode(image_file.read()).decode('utf-8')
 
@@ -29,15 +29,24 @@ image:
         
 data_uri = f"data:image/png;base64,{base64_image}"
 
+create_btn_alert = f"""
+image is a screenshot of Azure Portal website.
+
+locate the Create button with. plus sign in the image whetehr is it visible or not.
+
+If visible, return the estimated javascript mouse cursor X Y coordinates in the image.
+"""
+
 message = HumanMessage(
     content=[
         {
             "type": "text",
-            "text": """name all HTML elements in this image like buttons, textboxes, checkboxes, radio buttons, dropdowns, links and etc.
+            "text": """
+            image is a screenshot of Azure Portal website.
 
-            If you see icons for Azure Services, include all their names as well.
+            locate table row object with name "DefaultResourceGroup-CCAN" in the image whether is it visible or not.
 
-            Also list all bounding boxes with their coordinates in format (x1, y1, x2, y2) where (x1, y1) is top-left corner and (x2, y2) is bottom-right corner.
+            If visible, return the estimated javascript mouse cursor X Y coordinates in the image.
             """
             
         },
