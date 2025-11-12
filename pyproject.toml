@@ -1,0 +1,129 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "azure-portal-use"
+version = "0.1.0"
+description = "AI agent for automating Azure resource management tasks in Azure Portal using browser automation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Weixian Zhang", email = "weixian-zhang@users.noreply.github.com"}
+]
+keywords = ["azure", "automation", "automated web test"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.13",
+]
+
+dependencies = [
+    "browser-use>=0.9.5",
+    "langchain-core>=1.0.4",
+    "langchain-openai>=1.0.2",
+    "python-dotenv>=1.2.0",
+    "openai>=1.100.0",
+    "anthropic>=0.70.0",
+    "playwright>=1.40.0",
+    "pydantic>=2.12.0",
+    "pydantic-settings>=2.12.0",
+    "httpx>=0.28.0",
+    "aiohttp>=3.12.0",
+    "beautifulsoup4>=4.14.0",
+    "pillow>=12.0.0",
+]
+
+# [project.optional-dependencies]
+# dev = [
+#     "pytest>=8.0.0",
+#     "pytest-asyncio>=0.23.0",
+#     "pytest-cov>=4.1.0",
+#     "ruff>=0.7.0",
+#     "mypy>=1.8.0",
+#     "black>=24.0.0",
+#     "isort>=5.13.0",
+# ]
+
+# azure = [
+#     "azure-identity>=1.15.0",
+#     "azure-ai-agents>=1.0.0",
+#     "azure-ai-projects>=1.0.0",
+# ]
+
+# all = [
+#     "azure-portal-use[dev,azure]",
+# ]
+
+[project.urls]
+Homepage = "https://github.com/weixian-zhang/azure-portal-use"
+Repository = "https://github.com/weixian-zhang/azure-portal-use"
+Issues = "https://github.com/weixian-zhang/azure-portal-use/issues"
+
+[project.scripts]
+azure-portal-use = "azure_portal_use.main:main"
+
+[tool.pydeploy]
+exclude_libs = []
+
+# [tool.hatch.build.targets.wheel]
+# packages = ["src"]
+
+# [tool.hatch.build.targets.sdist]
+# include = [
+#     "/src",
+#     "/README.md",
+#     "/LICENSE",
+# ]
+
+# [tool.ruff]
+# line-length = 100
+# target-version = "py310"
+
+# [tool.ruff.lint]
+# select = [
+#     "E",   # pycodestyle errors
+#     "W",   # pycodestyle warnings
+#     "F",   # pyflakes
+#     "I",   # isort
+#     "B",   # flake8-bugbear
+#     "C4",  # flake8-comprehensions
+#     "UP",  # pyupgrade
+# ]
+# ignore = [
+#     "E501",  # line too long, handled by formatter
+#     "B008",  # do not perform function calls in argument defaults
+#     "C901",  # too complex
+# ]
+
+# [tool.ruff.lint.per-file-ignores]
+# "__init__.py" = ["F401"]
+
+# [tool.black]
+# line-length = 100
+# target-version = ["py310", "py311", "py312"]
+
+# [tool.isort]
+# profile = "black"
+# line_length = 100
+
+# [tool.mypy]
+# python_version = "3.10"
+# warn_return_any = true
+# warn_unused_configs = true
+# disallow_untyped_defs = false
+# ignore_missing_imports = true
+
+# [tool.pytest.ini_options]
+# asyncio_mode = "auto"
+# testpaths = ["tests"]
+# python_files = ["test_*.py"]
+# python_classes = ["Test*"]
+# python_functions = ["test_*"]
+# addopts = [
+#     "--strict-markers",
+#     "--strict-config",
+#     "--cov=src",
+# ]
