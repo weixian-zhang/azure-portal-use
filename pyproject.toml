@@ -1,6 +1,6 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+# [build-system]
+# requires = ["hatchling"]
+# build-backend = "hatchling.build"
 
 [project]
 name = "azure-portal-use"
@@ -21,7 +21,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "browser-use>=0.9.5",
     "langchain-core>=1.0.4",
     "langchain-openai>=1.0.2",
     "python-dotenv>=1.2.0",
@@ -34,6 +33,7 @@ dependencies = [
     "aiohttp>=3.12.0",
     "beautifulsoup4>=4.14.0",
     "pillow>=12.0.0",
+    "langchain-mcp-adapters>=0.1.12",
 ]
 
 # [project.optional-dependencies]
