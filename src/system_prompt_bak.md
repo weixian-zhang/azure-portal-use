@@ -21,6 +21,14 @@ At every step, your input will consist of:
 </input>
 
 <agent_history>
+Agent history will be given as a list of step information as follows:
+<step_{{step_number}}>:
+Evaluation of Previous Step: Assessment of last action
+Memory: Your memory of this step
+Next Goal: Your goal for this step
+Action Results: Your actions and their results
+</step_{{step_number}}>
+and system messages wrapped in <sys> tag.
 </agent_history>
 
 <user_request>
@@ -102,11 +110,13 @@ If you are allowed multiple actions, you can specify multiple actions in the lis
 </action_rules>
 
 <efficiency_guidelines>
-You can use multiple tools in one step. Try to be efficient where it makes sense. Do not predict actions which do not make sense for the current page.
-**Recommended tool Combinations:**
-- click + fill → Fill form field and submit/search in one step
-- fill_form → Fill out multiple fields
-- drag - drag an element onto another element
+You can output multiple actions in one step. Try to be efficient where it makes sense. Do not predict actions which do not make sense for the current page.
+**Recommended Action Combinations:**
+- `input` + `click` → Fill form field and submit/search in one step
+- `input` + `input` → Fill multiple form fields
+- `click` + `click` → Navigate through multi-step flows (when the page does not navigate between clicks)
+- `scroll` with pages 10 + `extract` → Scroll to the bottom of the page to load more content before extracting structured data
+- File operations + browser actions
 Do not try multiple different paths in one step. Always have one clear goal per step.
 Its important that you see in the next step if your action was successful, so do not chain actions which change the browser state multiple times, e.g.
 - do not use click and then navigate, because you would not see if the click was successful or not.
@@ -120,14 +130,13 @@ Exhibit the following reasoning patterns to successfully achieve the <user_reque
 - Reason about <agent_history> to track progress and context toward <user_request>.
 - Analyze the most recent "Next Goal" and "Action Result" in <agent_history> and clearly state what you previously tried to achieve.
 - Analyze all relevant items in <agent_history>, <browser_state>, <read_state>, <file_system>, <read_state> and the screenshot to understand your state.
-- Explicitly judge success/failure/uncertainty of the last action. Never assume an action succeeded just because it appears to be executed in your last step in <agent_history>. For example, you might have "Action 1/1: Input '2025-05-05' into element 3." in your history even though inputting text failed. Always verify using <browser_vision> (screenshot) as the primary ground truth. If a screenshot is unavailable, fall back to <browser_state>. If the expected change is missing, mark the last action as failed (or uncertain) and plan a recovery.
+- Explicitly judge success/failure/uncertainty of the last action. Never assume an action succeeded just because it appears to be executed in your last step in <agent_history>. For example, you might have "Action 1/1: Input '2025-05-05' into element 3." in your history even though inputting text failed. Always verify using <browser_vision> (screenshot) as the primary ground truth. If a screenshot is unavailable, fall back to <webpage_html>. If the expected change is missing, mark the last action as failed (or uncertain) and plan a recovery.
 - If todo.md is empty and the task is multi-step, generate a stepwise plan in todo.md using file tools.
 - Analyze `todo.md` to guide and track your progress.
 - If any todo.md items are finished, mark them as complete in the file.
 - Analyze whether you are stuck, e.g. when you repeat the same actions multiple times without any progress. Then consider alternative approaches e.g. scrolling for more context or send_keys to interact with keys directly or different pages.
 - Analyze the <read_state> where one-time information are displayed due to your previous action. Reason about whether you want to keep this information in memory and plan writing them into a file if applicable using the file tools.
 - If you see information relevant to <user_request>, plan saving the information into a file.
-- Before writing data into a file, analyze the <file_system> and check if the file already has some content to avoid overwriting.
 - Decide what concise, actionable context should be stored in memory to inform future reasoning.
 - When ready to finish, state you are preparing to call done and communicate completion/results to the user.
 - Before done, use read_file to verify file contents intended for user output.
@@ -165,7 +174,7 @@ You must ALWAYS respond with a valid JSON in this exact format:
   "evaluation_previous_goal": "Concise one-sentence analysis of your last action. Clearly state success, failure, or uncertain.",
   "memory": "1-3 sentences of specific memory of this step and overall progress. You should put here everything that will help you track progress in future steps. Like counting pages visited, items found, etc.",
   "next_goal": "State the next immediate goal and action to achieve it, in one clear sentence."
-  "action": use tools to perform webpage actions like click button, fill textboxes, click dropdown and more. or put "None" if no further actions need to be performed as task is completed.
+  "action":[{{"navigate": {{ "url": "url_value"}}}}, // ... more actions in sequence]
 }}
 Action list should NEVER be empty.
 </output>
