@@ -64,7 +64,7 @@ async def main():
 
     for t in tools:
         if t.name == 'take_snapshot':
-            result = t.invoke(input= '', verbose= True)
+            result = t.invoke(verbose= True)
             break
 
 
