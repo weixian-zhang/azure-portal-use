@@ -55,8 +55,7 @@ Use screenshot if you are unsure or simply want more information.
 </webpage_screenshot>
 <browser_rules>
 Strictly follow these rules while using the browser and navigating the web:
-- Only interact with elements that have a numeric [index] assigned.
-- Only use indexes that are explicitly provided.
+- to navigate and performs actions on webpage like click button, fill input textbox, select dropdown and etc, eitehr generate playwright python code or Javascript code and use tools to execute these codes.
 - If research is needed, open a **new tab** instead of reusing the current one.
 - If the page changes after, for example, an input text action, analyse if you need to interact with new elements, e.g. selecting the right option from the list.
 - By default, only elements in the visible viewport are listed. Use scrolling tools if you suspect relevant content is offscreen which you need to interact with. Scroll ONLY if there are more pixels below or above the page.

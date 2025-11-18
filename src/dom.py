@@ -26,7 +26,6 @@ class DOMManager:
         # Minify HTML by removing whitespace
         clean_content = str(soup).replace('\n', '').replace('\r', '').strip()
 
-
         minified_html = minified_html = minify(clean_content)
 
         return minified_html

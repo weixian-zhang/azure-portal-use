@@ -3,7 +3,6 @@
 </user_request>
 
 <agent_history>
-{agent_history}
 </agent_history>
 
 <agent_tool>
