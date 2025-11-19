@@ -44,7 +44,97 @@ class PlaywrightManager:
 			return False
 		
 	
-	async def snapshot_accessibility_tree_for_all_iframes(self) -> dict:
+
+	async def get_all_iframe_dom(self) -> list[str]:
+
+		result = []
+		frame_html: list[str] = await self._get_all_iframe_dom()
+
+		for frame in frame_html:
+			html = frame
+			minified = self.dom_manager.minify_html(html)
+			result.append(minified)
+
+		return result
+
+
+	async def _get_all_iframe_dom(self) -> list[str]:
+
+		result = []
+
+		cdp = await self.page.context.new_cdp_session(self.page)
+		
+		# Get all frame targets
+		targets = await cdp.send('Target.getTargets')
+		
+		for target in targets['targetInfos']:
+			# Process both page and iframe types
+			if target['type'] in ['page', 'iframe']:
+
+				# targetId is frameId for iframes
+				# using the name targetId here as CDP uses this term for less ambiguity
+				target_id = target.get('targetId')
+
+				session_id = await cdp.send('Target.attachToTarget', {
+									'targetId': target_id,
+									'flatten': True
+								})
+				session_id = session_id['sessionId']
+				
+				# await cdp.send('Target.activateTarget', {
+				# 					'targetId': target_id,
+				# 				})
+
+				await cdp.send('Page.enable', {'session_id': session_id}, )
+				await cdp.send('DOM.enable', {'session_id': session_id}, )
+
+				await cdp.send('Page.getFrameTree')
+				
+				
+				root_node = await cdp.send('DOM.getDocument', {
+					'depth': -1,
+					'pierce': True,
+					'session_id': session_id
+				})
+
+				node_id = root_node['root']['nodeId']
+				backendNodeId = root_node['root']['backendNodeId']
+
+				html = await cdp.send('DOM.getOuterHTML', {
+					'nodeId': node_id,
+					'backendNodeId': backendNodeId,
+					'includeShadowDOM': True
+				})
+
+				await cdp.send('Target.detachFromTarget', {
+									'sessionId': session_id,
+									'targetId': target_id
+								})
+
+				if html.get('outerHTML'):
+					result.append(html['outerHTML'])
+
+
+		return result
+
+
+		# if not targets:
+		# 	return ''
+		
+		# result=[]
+		# for t in targets:
+		# 	if t.type != 'iframe':
+		# 		continue
+
+		# 	frame = self.page.frame(name=t.name)
+
+		# 	if frame:
+		# 		html = frame.inner_html()
+		# 		result.append(html)
+		# return result
+
+
+async def snapshot_accessibility_tree_for_all_iframes(self) -> dict:
 		'''
 		Capture accessibility trees from all iframes in the current page using CDP.
 		Returns a dictionary with accessibility trees for each frame.
@@ -166,83 +256,3 @@ class PlaywrightManager:
 	# 				print(f"✗ Failed to get target info for {targetId}: {e}")
 
 	# 	return result
-	
-
-	async def get_all_iframe_dom(self) -> list[str]:
-
-		result = []
-		frame_html: list[str] = await self._get_all_iframe_dom()
-
-		for frame in frame_html:
-			html = frame
-			minified = self.dom_manager.minify_html(html)
-			result.append(minified)
-
-		return result
-
-
-	async def _get_all_iframe_dom(self) -> list[str]:
-
-		result = []
-
-		cdp = await self.page.context.new_cdp_session(self.page)
-		
-		# Get all frame targets
-		targets = await cdp.send('Target.getTargets')
-		
-		for target in targets['targetInfos']:
-			# Process both page and iframe types
-			if target['type'] in ['page', 'iframe']:
-
-				# targetId is frameId for iframes
-				# using the name targetId here as CDP uses this term for less ambiguity
-				target_id = target.get('targetId')
-				# type = target.get('type')
-				# name = target.get('title')
-				# url = target.get('url', 'about:blank')
-
-
-				session_id = await cdp.send('Target.attachToTarget', {
-									'targetId': target_id,
-									'flatten': False
-								})
-				
-				root_node = await cdp.send('DOM.getDocument', {
-					'depth': 10,
-				})
-
-				node_id = root_node['root']['nodeId']
-				backendNodeId = root_node['root']['backendNodeId']
-
-				html = await cdp.send('DOM.getOuterHTML', {
-					'nodeId': node_id,
-					'backendNodeId': backendNodeId,
-					'includeShadowDOM': True
-				})
-
-				await cdp.send('Target.detachFromTarget', {
-									'sessionId': session_id['sessionId'],
-									'targetId': target_id
-								})
-
-				if html.get('outerHTML'):
-					result.append(html['outerHTML'])
-
-
-		return result
-
-
-		# if not targets:
-		# 	return ''
-		
-		# result=[]
-		# for t in targets:
-		# 	if t.type != 'iframe':
-		# 		continue
-
-		# 	frame = self.page.frame(name=t.name)
-
-		# 	if frame:
-		# 		html = frame.inner_html()
-		# 		result.append(html)
-		# return result

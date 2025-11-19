@@ -1,21 +1,25 @@
 from langchain_mcp_adapters.client import MultiServerMCPClient  
 from langchain_core.tools import Tool
 from langchain_openai import AzureChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
 from chrome import start_chrome_with_debug_port
 from playwright_integration import PlaywrightManager
 from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any
 import asyncio
 import os
 
+
+class ToolAction(BaseModel):
+    name: str = Field(..., description="The exact name of the tool only and no additional text.")
+    parameters: Dict[str, Any] = Field(..., description="The parameters to pass to the tool.")
 
 class AgentResult(BaseModel):
     thinking: str = Field(..., description="A structured <think>-style reasoning block that applies the <reasoning_rules> provided above.")
     evaluation_previous_goal: str = Field(..., description="Concise one-sentence analysis of your last action. Clearly state success, failure, or uncertain.")
     memory: str = Field(..., description="1-3 sentences of specific memory of this step and overall progress. You should put here everything that will help you track progress in future steps. Like counting pages visited, items found, etc.")
     next_goal: str = Field(..., description="State the next immediate goal and action to achieve it, in one clear sentence.")
-    action: str = Field(..., description="Use tools to perform webpage actions like click button, fill textboxes, click dropdown and more. or put 'None' if no further actions need to be performed as task is completed.")
-
+    tool: Optional[ToolAction] = Field(None, description="Tool definition in Json. or put empty string \"\" if no further actions need to be performed as task is completed.")
 
 system_prompt = ''
 user_prompt_template = ''
@@ -44,10 +48,10 @@ def browser_get_page_html():
     frames_html = asyncio.run(playwright_manager.get_all_iframe_dom())
 
 
-def structued_output_parser(response_content: str) -> AgentResult:
+def structued_output(json_content: str, content_type: BaseModel) -> BaseModel:
     # get string after ``json in response.content
-    json_str = response_content.split("```json")[1].split("```")[0]
-    result = AgentResult.model_validate_json(json_str)
+    json_str = json_content.split("```json")[1].split("```")[0]
+    result = content_type.model_validate_json(json_str)
     return result
 
 
@@ -84,6 +88,7 @@ async def main():
 
         tools = await client.get_tools()
         tools = [t for t in tools if t.name not in excluded_tools]
+        tool_map = {tool.name: tool for tool in tools}
 
         llm = AzureChatOpenAI(
                     deployment_name="gpt-4o",
@@ -100,7 +105,7 @@ async def main():
 
             user_prompt = user_prompt_template.format(
                 user_request="""
-                find the Create button with plus sign "+ Create" and click it
+                find the Create menuitem button and click it
                 """,
                 webpage_html=frames_html[i])
             
@@ -114,7 +119,20 @@ async def main():
 
             response: AIMessage = llm.invoke(input=messages)
 
-            agent_output: AgentResult = structued_output_parser(response.content)
+            agent_output: AgentResult = structued_output(response.content, AgentResult)
+
+            if agent_output.tool:
+                tool_to_invoke = tool_map.get(agent_output.tool.name)
+                if tool_to_invoke:
+                    try:
+                        tool_response: ToolMessage = await tool_to_invoke.ainvoke(
+                            input=agent_output.tool.parameters
+                        )
+                        print(f"✅ Tool {agent_output.tool.name} invoked successfully. Response: {tool_response.content}")
+                    except Exception as e:
+                        print(f"❌ An error occurred while invoking tool {agent_output.tool.name}: {e}")
+                else:
+                    print(f"❌ Tool {agent_output.tool.name} not found in tool map.")
 
             pass
 

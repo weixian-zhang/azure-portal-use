@@ -55,7 +55,7 @@ Use screenshot if you are unsure or simply want more information.
 </webpage_screenshot>
 <browser_rules>
 Strictly follow these rules while using the browser and navigating the web:
-- to navigate and performs actions on webpage like click button, fill input textbox, select dropdown and etc, eitehr generate playwright python code or Javascript code and use tools to execute these codes.
+- to navigate and performs actions on webpage like click button, fill input textbox, select dropdown and etc, generate playwright python code and use tools to execute these codes.
 - If research is needed, open a **new tab** instead of reusing the current one.
 - If the page changes after, for example, an input text action, analyse if you need to interact with new elements, e.g. selecting the right option from the list.
 - By default, only elements in the visible viewport are listed. Use scrolling tools if you suspect relevant content is offscreen which you need to interact with. Scroll ONLY if there are more pixels below or above the page.
@@ -164,7 +164,12 @@ You must ALWAYS respond with a valid JSON in this exact format:
   "evaluation_previous_goal": "Concise one-sentence analysis of your last action. Clearly state success, failure, or uncertain.",
   "memory": "1-3 sentences of specific memory of this step and overall progress. You should put here everything that will help you track progress in future steps. Like counting pages visited, items found, etc.",
   "next_goal": "State the next immediate goal and action to achieve it, in one clear sentence."
-  "action": use tools to perform webpage actions like click button, fill textboxes, click dropdown and more. or put "None" if no further actions need to be performed as task is completed.
+  "tool": {
+    "name": "exact name of tool only and no additional text",
+    "parameters": {
+        "code": "await page.locator('button:has-text(\"+ Create\")').click();"
+    }
+  }
 }}
 Action list should NEVER be empty.
 </output>
